@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 void j_print(const char *printing)
-
+void display_prompt(void)
 
 
 
