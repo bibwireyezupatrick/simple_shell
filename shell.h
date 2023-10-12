@@ -8,8 +8,13 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <limits.h>
+#include <fcntl.h>
+#include <errno.h>
 
-void j_print(const char *printer);
+
+void j_print(const char *printe);
 void execute_command(char *command);
 void read_command(char *command, size_t size);
 extern char **environ;
