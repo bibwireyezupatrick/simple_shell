@@ -10,9 +10,9 @@
 #include <stdlib.h>
 
 void j_print(const char *printing);
-void display(void);
-void execute_cmd(const char *cmd);
-void read_cmd(char *cmd, size_t size);
+void execute_command(char *command);
+void read_command(char *command, size_t size);
+extern char **environ;
 
 
 
