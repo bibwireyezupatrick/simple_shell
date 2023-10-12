@@ -21,7 +21,7 @@ int main(void)
 		}
 		/* Remove the newline character from the input */
 		if (line[strlen(line) - 1] == '\n')
-			line[strlen(line) - 1] = '\0;
+			line[strlen(line) - 1] = '\0';
 		/* Execute the command */
 		execute_command(line);
 
