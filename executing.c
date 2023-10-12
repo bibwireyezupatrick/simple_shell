@@ -15,8 +15,8 @@ void execute_cmd(const char *cmd)
 	}
 	else if (child_pid == 0)
 	{
-		char *args[] = {cmd, NULL};
-		char *envp[] = {NULL};
+		const char *args[] = {cmd, NULL};
+		const char *envp[] = {NULL};
 
 		if (execve(cmd, args, envp) == -1)
 		{
