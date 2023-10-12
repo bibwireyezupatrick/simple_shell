@@ -15,14 +15,9 @@ void execute_cmd(const char *cmd)
 	}
 	else if (child_pid == 0)
 	{
-		const char *args[] = {cmd, NULL};
-		const char *envp[] = {NULL};
-
-		if (execve(cmd, args, envp) == -1)
-		{
-			perror("execve");
-			exit(EXIT_FAILURE);
-		}
+		execlp(cmd, cmd, (char *)NULL);
+		perror("execlp");
+		exit(EXIT_FAILURE);
 	}
 	else
 	{
