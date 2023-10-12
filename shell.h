@@ -7,6 +7,7 @@
 #include <sdtbool.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <stdlib.h>
 
 void j_print(const char *printing);
 void display(void);
