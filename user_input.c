@@ -19,6 +19,6 @@ void read_cmd(char *cmd, size_t size)
 			exit(EXIT_FAILURE);
 		}
 	}
-	cmd[strcspn(cmd, "\n"] = '\0';
+	cmd[strcspn(cmd, "\n")] = '\0';
 }
 
