@@ -15,6 +15,7 @@
 
 
 void j_print(const char *printe);
+void j_print(const char *message);
 void execute_command(char *command);
 void read_command(char *command, size_t size);
 extern char **environ;

@@ -3,7 +3,7 @@
  *j_print- in place of printf function
  *@printer: string name
  */
-void j_print(const char *printer)
+void j_print(const char *message)
 {
-	write(STDOUT_FILENO, printer, strlen(printer));
+	write(STDOUT_FILENO, message, strlen(message));
 }
