@@ -9,7 +9,7 @@
 #include <sys/wait.h>
 #include <stdlib.h>
 
-void j_print(const char *printer);
+void j_print(const char *message);
 void execute_command(char *command);
 void read_command(char *command, size_t size);
 extern char **environ;
