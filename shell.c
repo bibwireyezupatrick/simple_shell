@@ -12,7 +12,7 @@ int main(void)
 
 	while (1)
 	{
-		j_print("($) ");
+		j_print("(Japhspace$) ");
 		getline(&line, &len, stdin);
 
 		if (line == NULL)
