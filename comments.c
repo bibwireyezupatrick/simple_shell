@@ -1,4 +1,5 @@
-#include "shell.h"
+#include "sheel.h"
+
 /**
  * j_print - Custom print function
  * @str: The string to print
@@ -8,9 +9,8 @@ void j_print(const char *str)
 	write(STDOUT_FILENO, str, strlen(str));
 }
 /**
- *main- main function
- *input: string name
- *Return: always 0
+ * main - main function
+ * @input: The string to print
  */
 int main(void)
 {
@@ -20,8 +20,9 @@ int main(void)
 	j_print(input);
 	j_print("\n");
 
-	char *pos = strstr(input, "#");
+	char *pos; /* Declare pos at the beginning of the block*/
 
+	pos = strstr(input, "#");
 	if (pos != NULL)
 	{
 		*pos = '\0';
@@ -30,7 +31,5 @@ int main(void)
 	j_print("Processed Input: ");
 	j_print(input);
 	j_print("\n");
-
-	return (0);
+	return 0;
 }
-
