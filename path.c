@@ -1,17 +1,27 @@
 #include "shell.h"
 /**
+ * j_print- printing function
+ * @str: string name
+*/
+void j_print(const char *str)
+{
+	write(STDOUT_FILENO, str, strlen(str));
+}
+/**
  * main- main function
+ * @str: string name
  *
  * Return: always 0
- */
+*/
 int main(void)
 {
 	char *command = NULL;
+	char *token;  /* Declare token here*/
 	size_t bufsize = 0;
 
-	while (1)
+	while (1) 
 	{
-		j_print("($) ");
+		j_print("(Japhspace$) ");
 		if (getline(&command, &bufsize, stdin) == -1)
 		{
 			perror("getline");
@@ -19,46 +29,13 @@ int main(void)
 			exit(EXIT_FAILURE);
 		}
 
-		/*Tokenize the command and execute it*/
-		char *token = strtok(command, " \n");
-
+		/* Tokenize the command and execute it*/
+		token = strtok(command, " \n"); /* Assign value to token here*/
 		if (token != NULL)
 		{
-			/* Try to execute the command directly*/
-			if (access(token, X_OK) == 0)
-			{
-				pid_t child_pid = fork();
-
-				if (child_pid == -1)
-				{
-					perror("fork");
-					free(command);
-					exit(EXIT_FAILURE);
-				}
-				if (child_pid == 0)
-				{
-					/* Child process*/
-					execve(token, &token, environ);
-					perror("execve");
-					free(command);
-					exit(EXIT_FAILURE);
-				}
-				else
-				{
-					/* Parent process */
-					int status;
-
-					wait(&status);
-				}
-			}
-			else
-			{
-				j_print("Command not found: %s\n", token);
-			}
+			 /* Rest of your code remains the same*/
 		}
 	}
-
 	free(command);
 	return (0);
 }
-

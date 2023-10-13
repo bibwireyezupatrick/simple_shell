@@ -1,10 +1,15 @@
 #include "shell.h"
 /**
- * main- main function
- * command: string name
- *
- * Return: always 0
- */
+* j_print- printing function
+*/
+void j_print(const char *str)
+{
+	write(STDOUT_FILENO, str, strlen(str));
+}
+/**
+* main- main function
+* @command: string name
+*/
 int main(void)
 {
 	char *command = NULL;
@@ -12,25 +17,20 @@ int main(void)
 
 	while (1)
 	{
-		j_print("(Japhspace)");
-		if (getline(&command, &bufsize, stdin) == -1)
-		{
-			perror("getline");
-			free(command);
-			exit(EXIT_FAILURE);
-		}
+		j_print("($) ");
+		getline(&command, &bufsize, stdin);
 
-		/* Tokenize the command and execute it*/
+        /*Tokenize the command and execute it*/
 		char *token = strtok(command, " \n");
 
 		while (token != NULL)
 		{
-			j_print("Argument: %s\n", token);
+			j_print("Argument: ");
+			j_print(token);
+			j_print("\n");
 			token = strtok(NULL, " \n");
 		}
 	}
-
 	free(command);
-
 	return (0);
 }
