@@ -1,13 +1,17 @@
 #include "shell.h"
 
 /**
- * j_print - Custom print function
+ * j_print- Custom print function
  * @str: The string to print
  */
 void j_print(const char *str)
 {
 	write(STDOUT_FILENO, str, strlen(str));
 }
+/**
+ * j_execute_command- executing function
+ *
+ */
 void j_execute_command(char *command)
 {
     /**
@@ -18,6 +22,11 @@ void j_execute_command(char *command)
 	j_print(command);
 	j_print("\n");
 }
+/**
+ * j_handle_semicolon- other function
+ *
+ * @input: string name
+ */
 void j_handle_semicolon(char *input)
 {
 	char *token;
