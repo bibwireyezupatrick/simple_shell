@@ -38,5 +38,6 @@ int main(void)
 	j_print("You entered: ");
 	j_print(input);
 	free(input);
-	return(0);
 
+	return (0);
+}

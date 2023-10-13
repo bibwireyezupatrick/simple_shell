@@ -11,7 +11,7 @@ int main(void)
 
 	while (1)
 	{
-		j_print("(Japhspace) ");
+		printf("(Japhspace) ");
 		if (getline(&command, &bufsize, stdin) == -1)
 		{
 			perror("getline");
@@ -25,7 +25,7 @@ int main(void)
 			exit(0);
 		}
 		/* Execute the command*/
-		j_print("Command executed: %s", command);
+		printf("Command executed: %s", command);
 	}
 
 	free(command);
