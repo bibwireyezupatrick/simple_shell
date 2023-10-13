@@ -17,8 +17,8 @@ int main(void)
 
 	while (1)
 	{
-		j_print("($) ");
-		getline(&command, &bufsize, stdin);
+		j_print("(Japhspace$) ");
+	       	getline(&command, &bufsize, stdin);
 
         /*Tokenize the command and execute it*/
 		char *token = strtok(command, " \n");
