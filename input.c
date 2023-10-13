@@ -1,4 +1,5 @@
 #include "shell.h"
+
 /**
  * j_print - Custom print function
  * @str: The string to print
@@ -7,12 +8,13 @@ void j_print(const char *str)
 {
 	write(STDOUT_FILENO, str, strlen(str));
 }
+
 /**
- * main- main function
- * argc: integer
- * argv: arguiment vector
+ * main - Main function
+ * @argc: Argument count
+ * @argv: Argument vector
  *
- * Return: always 1
+ * Return: Always 0
  */
 int main(int argc, char *argv[])
 {
@@ -34,13 +36,12 @@ int main(int argc, char *argv[])
 
 	while (fgets(line, sizeof(line), file))
 	{
-		line[strcspn(line, "\n")] = '\0';
 		j_print("Executing: ");
 		j_print(line);
 		j_print("\n");
+		line[strcspn(line, "\n")] = '\0';
 	}
 
 	fclose(file);
 	return (0);
 }
-

@@ -1,8 +1,17 @@
 #include "shell.h"
+
 /**
- * main- main function
+ * j_print - Custom print function
+ * @str: String to print
+ */
+void j_print(const char *str)
+{
+	write(STDOUT_FILENO, str, strlen(str));
+}
+/**
+ * main - Main function
  *
- * Return: always 0
+ * Return: Always 0
  */
 int main(void)
 {
@@ -24,8 +33,14 @@ int main(void)
 			free(command);
 			exit(0);
 		}
+
 		/* Execute the command*/
 		printf("Command executed: %s", command);
+
+		/* Execute the command */
+		j_print("Command executed: ");
+		j_print(command);
+
 	}
 
 	free(command);
