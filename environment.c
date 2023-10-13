@@ -1,25 +1,31 @@
 #include "shell.h"
 /**
+ * j_print- custom print function
+ * @str: string name
+ */
+void j_print(const char *str)
+{
+	write(STDOUT_FILENO, str, strlen(str));
+}
+/**
  * main- main function
- *@argv: arguiment vector
- *@argc: arguiment
- *@envp: string name
+ * @argc: integer
+ * @argv: argument vector
+ * @envp: string name
  *
  * Return: always 0
  */
-
-
 int main(int argc, char *argv[], char *envp[])
 {
 	(void)argc;
 	(void)argv;
 
+	char *command = NULL;
+	size_t bufsize = 0;
+
 	while (1)
 	{
-		j_print("(Japhspace) ");
-		char *command = NULL;
-		size_t bufsize = 0;
-
+		j_print("($) ");
 		if (getline(&command, &bufsize, stdin) == -1)
 		{
 			perror("getline");
@@ -33,11 +39,13 @@ int main(int argc, char *argv[], char *envp[])
 
 			for (env = envp; *env != NULL; env++)
 			{
-				j_print("%s\n", *env);
+				j_print(*env);
+				j_print("\n");
 			}
 		}
-		/* Execute the command */
-		j_print("Command executed: %s", command);
+
+		j_print("Command executed: ");
+		j_print(command);
 		free(command);
 	}
 
