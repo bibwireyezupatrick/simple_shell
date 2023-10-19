@@ -1,57 +1,115 @@
 #include "shell.h"
 
 /**
- * j_print - Custom print function
- * @str: The string to print
+ * my_history - displays the history list.
+ *           
+ * @info: Structure containing potential arguments.
+ *        
+ *  Return: Always 0
  */
-void j_print(const char *str)
+int my_history(info_t *info)
 {
-	write(STDOUT_FILENO, str, strlen(str));
-}
-
-int j_cd(char *path)
-{
-	if (path == NULL)
-	{
-		path = getenv("HOME");  /* If no argument, change to home directory*/
-	}
-
-	if (chdir(path) != 0)
-	{
-		j_print("Error changing directory\n");
-		return (-1);
-	}
-
-	char *cwd = getcwd(NULL, 0);
-
-	if (cwd == NULL)
-	{
-		j_print("Error getting current directory\n");
-		return (-1);
-	}
-
-	/* Update PWD environment variable*/
-	j_setenv("PWD", cwd);
-
-	j_print("Current directory: ");
-	j_print(cwd);
-	j_print("\n");
-
-	free(cwd);
+	print_list(info->history);
 	return (0);
 }
+
 /**
- * main- main function
- * path: string name
- *j_cd: path
- * Return: always 0
+ * unset_alias - sets alias to string
+ * @info: parameter struct
+ * @str: the string alias
+ *
+ * Return: Always 0 on success, 1 on error
  */
-int main(void)
+int unset_alias(info_t *info, char *str)
 {
-	char path[] = "/tmp";
+	char *k, s;
+	int ret;
 
-	j_cd(path);
+	k = _strchr(str, '=');
+	if (!k)
+		return (1);
+	s = *k;
+	*k = 0;
+	ret = delete_node_at_index(&(info->alias),
+		get_node_index(info->alias, node_starts_with(info->alias, str, -1)));
+	*k = s;
+	return (ret);
+}
+
+/**
+ * set_alias - sets alias to string
+ * @info: parameter struct
+ * @str: the string alias
+ *
+ * Return: Always 0 on success, 1 on error
+ */
+int set_alias(info_t *info, char *str)
+{
+	char *k;
+
+	k = _strchr(str, '=');
+	if (!k)
+		return (1);
+	if (!*++k)
+		return (unset_alias(info, str));
+
+	unset_alias(info, str);
+	return (add_node_end(&(info->alias), str, 0) == NULL);
+}
+
+/**
+ * print_alias - prints an alias string
+ * @node: the alias node
+ *
+ * Return: Always 0 on success, 1 on error
+ */
+int print_alias(list_t *node)
+{
+	char *k = NULL, *b = NULL;
+
+	if (node)
+	{
+		k = _strchr(node->str, '=');
+		for (b = node->str; b <= k; b++)
+		_putchar(*b);
+		_putchar('\'');
+		_puts(k + 1);
+		_puts("'\n");
+		return (0);
+	}
+	return (1);
+}
+
+/**
+ * my_alias - mimics the alias builtin (man alias)
+ * @info: Structure containing potential arguments. Used to maintain
+ *          constant function prototype.
+ *  Return: Always 0
+ */
+int my_alias(info_t *info)
+{
+	int v = 0;
+	char *k = NULL;
+	list_t *node = NULL;
+
+	if (info->argc == 1)
+	{
+		node = info->alias;
+		while (node)
+		{
+			print_alias(node);
+			node = node->next;
+		}
+		return (0);
+	}
+	for (v = 1; info->argv[v]; i++)
+	{
+		k = _strchr(info->argv[v], '=');
+		if (k)
+			set_alias(info, info->argv[v]);
+		else
+			print_alias(node_starts_with(info->alias, info->argv[v], '='));
+	}
 
 	return (0);
 }
-
