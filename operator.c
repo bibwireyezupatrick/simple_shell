@@ -1,101 +1,143 @@
 #include "shell.h"
 
 /**
- * j_print - Custom print function
- * @str: The string to print
+ * get_history_file - gets the history file
+ * @info: parameter struct
+ *
+ * Return: allocated string containg history file
  */
-void j_print(const char *str) 
+
+char *get_history_file(info_t *info)
 {
-	write(STDOUT_FILENO, str, strlen(str));
+	char *buf, *dir;
+
+	dir = _getenv(info, "HOME=");
+	if (!dir)
+		return (NULL);
+	buf = malloc(sizeof(char) * (_strlen(dir) + _strlen(HIST_FILE) + 2));
+	if (!buf)
+		return (NULL);
+	buf[0] = 0;
+	_strcpy(buf, dir);
+	_strcat(buf, "/");
+	_strcat(buf, HIST_FILE);
+	return (buf);
 }
+
 /**
- * j_execute_command- execting function
- * @command: strng name
+ * write_history - creates a file, or appends to an existing file
+ * @info: the parameter struct
+ *
+ * Return: 1 on success, else -1
  */
-int j_execute_command(char *command)
+int write_history(info_t *info)
 {
-	/* Implement code to execute a single command
-	 * This function could use exec functions, fork, etc.
-	 */
-	j_print("Executing command: ");
-	j_print(command);
-	j_print("\n");
+	ssize_t fd;
+	char *filename = get_history_file(info);
+	list_t *node = NULL;
 
-	/* Simulating command success (0) or failure (non-zero)*/
-	return (0);
-}
-/**
- * j_handle_logical_operator- operation function
- * @input: string name
- */
-void j_handle_logical_operators(char *input)
-{
-	char *token;
-	char *delim = "&&||";
-	token = strtok(input, delim);
+	if (!filename)
+		return (-1);
 
-	int last_status = 0;  /* Stores the return status of the previous command */
-
-	while (token != NULL)
+	fd = open(filename, O_CREAT | O_TRUNC | O_RDWR, 0644);
+	free(filename);
+	if (fd == -1)
+		return (-1);
+	for (node = info->history; node; node = node->next)
 	{
-		if (strstr(token, "&&") != NULL)
-		{
-			/* Handle && logical operator*/
-			char *command = strtok(token, "&&");
-
-			if (j_execute_command(command) == 0)
-			{
-				/* Command succeeded, continue to the next command*/
-				last_status = 0;
-			} 
-			else 
-			{
-				/* Command failed, no need to execute the next command*/
-				last_status = -1;
-				break;
-			}
-		}
-		else if (strstr(token, "||") != NULL)
-		{
-			/* Handle || logical operator*/
-			char *command = strtok(token, "||");
-
-			if (j_execute_command(command) == 0)
-			{
-				/* Command succeeded, no need to execute the next command*/
-				last_status = 0;
-				break;
-			}
-			else 
-			{
-				/* Command failed, continue to the next command*/
-				last_status = -1;
-			}
-		}
-
-		token = strtok(NULL, delim);
+		_putsfd(node->str, fd);
+		_putfd('\n', fd);
 	}
-
-	j_print("Overall status: ");
-	j_print(last_status == 0 ? "Success" : "Failure");
-	j_print("\n");
+	_putfd(BUF_FLUSH, fd);
+	close(fd);
+	return (1);
 }
+
 /**
- * main- main function
- * j_print: printing function
- * @input: string name
- * j_handle_logical_operators: operation function
- * Return: always 0
+ * read_history - reads history from file
+ * @info: the parameter struct
+ *
+ * Return: histcount on success, 0 otherwise
  */
-int main(void)
+int read_history(info_t *info)
 {
-	char input[] = "ls /var && echo Hello || date";
+	int i, last = 0, linecount = 0;
+	ssize_t fd, rdlen, fsize = 0;
+	struct stat st;
+	char *buf = NULL, *filename = get_history_file(info);
 
-	j_print("Original Input: ");
-	j_print(input);
-	j_print("\n");
+	if (!filename)
+		return (0);
 
-	j_handle_logical_operators(input);
+	fd = open(filename, O_RDONLY);
+	free(filename);
+	if (fd == -1)
+		return (0);
+	if (!fstat(fd, &st))
+		fsize = st.st_size;
+	if (fsize < 2)
+		return (0);
+	buf = malloc(sizeof(char) * (fsize + 1));
+	if (!buf)
+		return (0);
+	rdlen = read(fd, buf, fsize);
+	buf[fsize] = 0;
+	if (rdlen <= 0)
+		return (free(buf), 0);
+	close(fd);
+	for (i = 0; i < fsize; i++)
+		if (buf[i] == '\n')
+		{
+			buf[i] = 0;
+			build_history_list(info, buf + last, linecount++);
+			last = i + 1;
+		}
+	if (last != i)
+		build_history_list(info, buf + last, linecount++);
+	free(buf);
+	info->histcount = linecount;
+	while (info->histcount-- >= HIST_MAX)
+		delete_node_at_index(&(info->history), 0);
+	renumber_history(info);
+	return (info->histcount);
+}
 
+/**
+ * build_history_list - adds entry to a history linked list
+ * @info: Structure containing potential arguments. Used to maintain
+ * @buf: buffer
+ * @linecount: the history linecount, histcount
+ *
+ * Return: Always 0
+ */
+int build_history_list(info_t *info, char *buf, int linecount)
+{
+	list_t *node = NULL;
+
+	if (info->history)
+		node = info->history;
+	add_node_end(&node, buf, linecount);
+
+	if (!info->history)
+		info->history = node;
 	return (0);
+}
+
+/**
+ * renumber_history - renumbers the history linked list after changes
+ * @info: Structure containing potential arguments. Used to maintain
+ *
+ * Return: the new histcount
+ */
+int renumber_history(info_t *info)
+{
+	list_t *node = info->history;
+	int i = 0;
+
+	while (node)
+	{
+		node->num = i++;
+		node = node->next;
+	}
+	return (info->histcount = i);
 }

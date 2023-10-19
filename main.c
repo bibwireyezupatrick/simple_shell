@@ -1,35 +1,44 @@
 #include "shell.h"
+
 /**
- * main- main function
+ * main - entry point
+ * @ac: arg count
+ * @av: arg vector
  *
- * Return: always 0
+ * Return: 0 on success, 1 on error
  */
-int main(void)
+int main(int ac, char **av)
 {
-	char *line = NULL;
-	size_t len = 0;
+	info_t info[] = { INFO_INIT };
+	int fd = 2;
 
-	while (1)
+	asm ("mov %1, %0\n\t"
+			"add $3, %0"
+			: "=r" (fd)
+			: "r" (fd));
+
+	if (ac == 2)
 	{
-		j_print("(Japhspace$) "); /* Display the prompt*/
-		getline(&line, &len, stdin);
-
-		if (line == NULL)
+		fd = open(av[1], O_RDONLY);
+		if (fd == -1)
 		{
-			j_print("\n"); /* Print a newline on Ctrl+D */
-			break;
+			if (errno == EACCES)
+				exit(126);
+			if (errno == ENOENT)
+			{
+				_eputs(av[0]);
+				_eputs(": 0: Can't open ");
+				_eputs(av[1]);
+				_eputchar('\n');
+				_eputchar(BUF_FLUSH);
+				exit(127);
+			}
+			return (EXIT_FAILURE);
 		}
-		/* Remove the newline character from the input */
-		if (line[strlen(line) - 1] == '\n')
-			line[strlen(line) - 1] = '\0';
-		/* Execute the command */
-		execute_command(line);
-
-		/* Free allocated memory */
-		free(line);
-		line = NULL;
+		info->readfd = fd;
 	}
-
-	return (0);
+	populate_env_list(info);
+	read_history(info);
+	hsh(info, av);
+	return (EXIT_SUCCESS);
 }
-

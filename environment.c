@@ -1,56 +1,92 @@
 #include "shell.h"
 
 /**
- * j_print - Custom print function
- * @str: The string to print
+ * _myenv - prints the current environment
+ * @info: Structure containing potential arguments. Used to maintain
+ *          constant function prototype.
+ * Return: Always 0
  */
-void j_print(const char *str)
+int _myenv(info_t *info)
 {
-	write(STDOUT_FILENO, str, strlen(str));
+	print_list_str(info->env);
+	return (0);
 }
 
 /**
- * main - Main function
- * @argc: Argument count
- * @argv: Argument vector
- * @envp: Environment variables
+ * _getenv - gets the value of an environ variable
+ * @info: Structure containing potential arguments. Used to maintain
+ * @name: env var name
  *
+ * Return: the value
+ */
+char *_getenv(info_t *info, const char *name)
+{
+	list_t *node = info->env;
+	char *p;
+
+	while (node)
+	{
+		p = starts_with(node->str, name);
+		if (p && *p)
+			return (p);
+		node = node->next;
+	}
+	return (NULL);
+}
+
+/**
+ * _mysetenv - Initialize a new environment variable,
+ *             or modify an existing one
+ * @info: Structure containing potential arguments. Used to maintain
+ *        constant function prototype.
+ *  Return: Always 0
+ */
+int _mysetenv(info_t *info)
+{
+	if (info->argc != 3)
+	{
+		_eputs("Incorrect number of arguements\n");
+		return (1);
+	}
+	if (_setenv(info, info->argv[1], info->argv[2]))
+		return (0);
+	return (1);
+}
+
+/**
+ * _myunsetenv - Remove an environment variable
+ * @info: Structure containing potential arguments. Used to maintain
+ *        constant function prototype.
  * Return: Always 0
  */
-int main(int argc, char *argv[], char *envp[])
+int _myunsetenv(info_t *info)
 {
-	(void)argc;
-	(void)argv;
+	int i;
 
-	char *command = NULL;
-	size_t bufsize = 0;
-
-	while (1)
+	if (info->argc == 1)
 	{
-		j_print("(Japhspace$) ");
-		if (getline(&command, &bufsize, stdin) == -1)
-		{
-			perror("getline");
-			free(command);
-			exit(EXIT_FAILURE);
-		}
-	
-		if (strcmp(command, "env\n") == 0)
-		{
-			char **env;
-
-			for (env = envp; *env != NULL; env++)
-			{
-				j_print(*env);
-				j_print("\n");
-			}
-		}
-
-		j_print("Command executed: ");
-		j_print(command);
-		free(command);
+		_eputs("Too few arguements.\n");
+		return (1);
 	}
+	for (i = 1; i <= info->argc; i++)
+		_unsetenv(info, info->argv[i]);
 
 	return (0);
 }
 
+/**
+ * populate_env_list - populates env linked list
+ * @info: Structure containing potential arguments. Used to maintain
+ *          constant function prototype.
+ * Return: Always 0
+ */
+int populate_env_list(info_t *info)
+{
+	list_t *node = NULL;
+	size_t i;
+
+	for (i = 0; environ[i]; i++)
+		add_node_end(&node, environ[i], 0);
+	info->env = node;
+	return (0);
+}

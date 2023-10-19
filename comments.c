@@ -6,7 +6,7 @@
  */
 void j_print(const char *str)
 {
-	write(STDOUT_FILENO, str, strlen(str));
+        write(STDOUT_FILENO, str, strlen(str));
 }
 
 /**
@@ -16,24 +16,23 @@ void j_print(const char *str)
  */
 int main(void)
 {
-	char input[] = "echo $$ # ls -la";
-	char *pos;
+        char input[] = "echo $$ # ls -la";
+        char *pos;
 
-	j_print("Original Input: ");
-	j_print(input);
-	j_print("\n");
+        j_print("Original Input: ");
+        j_print(input);
+        j_print("\n");
 
-	pos = strstr(input, "#");
+        pos = strstr(input, "#");
 
-	if (pos != NULL)
-	{
-		*pos = '\0';
-	}
+        if (pos != NULL)
+        {
+                *pos = '\0';
+        }
 
-	j_print("Processed Input: ");
-	j_print(input);
-	j_print("\n");
+        j_print("Processed Input: ");
+        j_print(input);
+        j_print("\n");
 
-	return (0);
+        return (0);
 }
-

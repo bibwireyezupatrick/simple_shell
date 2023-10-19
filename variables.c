@@ -1,138 +1,154 @@
 #include "shell.h"
 
 /**
- * j_print- Custom print function
- * @str: The string to print
+ * is_chain - test if current char in buffer is a chain delimeter
+ * @info: the parameter struct
+ * @buf: the char buffer
+ * @p: address of current position in buf
+ *
+ * Return: 1 if chain delimeter, 0 otherwise
  */
-void j_print(const char *str)
+int is_chain(info_t *info, char *buf, size_t *p)
 {
-	write(STDOUT_FILENO, str, strlen(str));
-}
+	size_t j = *p;
 
-/* Structure to store environment variables*/
-typedef struct EnvVar
-{
-	char *name;
-	char *value;
-	struct EnvVar *next;
-}
-EnvVar;
-EnvVar *env_vars = NULL;
-/**
- * j_execute_command- executing command
- * @command: string to print
- */
-int j_execute_command(char *command)
-{
-	/* Implement code to execute a single command
-	 * * This function could use exec functions, fork, etc.
-	 * */
-	j_print("Executing command: ");
-	j_print(command);
-	j_print("\n");
-
-    /* Simulating command success (0) or failure (non-zero)*/
-
-	return (0);
-}
-/**
- * j_get_env- getting function
- * @name: string name
- * Return: NULL 0
- */
-char *j_get_env(const char *name)
-{
-	/*Find and return the value of an environment variable*/
-	EnvVar *env = env_vars;
-	while (env != NULL)
+	if (buf[j] == '|' && buf[j + 1] == '|')
 	{
-		if (strcmp(env->name, name) == 0)
-		{
-			return env->value;
-		}
-		env = env->next;
+		buf[j] = 0;
+		j++;
+		info->cmd_buf_type = CMD_OR;
 	}
-	return NULL;
-}
-/**
- * j_set_env- environment function
- * @name: string name
- * @value: string name
- * Return: always 0
- */
-int j_set_env(const char *name, const char *value)
-{
-	/* Set or update an environment variable*/
-	EnvVar *env = env_vars;
-	while (env != NULL)
+	else if (buf[j] == '&' && buf[j + 1] == '&')
 	{
-		if (strcmp(env->name, name) == 0)
+		buf[j] = 0;
+		j++;
+		info->cmd_buf_type = CMD_AND;
+	}
+	else if (buf[j] == ';') /* found end of this command */
+	{
+		buf[j] = 0; /* replace semicolon with null */
+		info->cmd_buf_type = CMD_CHAIN;
+	}
+	else
+		return (0);
+	*p = j;
+	return (1);
+}
+
+/**
+ * check_chain - checks we should continue chaining based on last status
+ * @info: the parameter struct
+ * @buf: the char buffer
+ * @p: address of current position in buf
+ * @i: starting position in buf
+ * @len: length of buf
+ *
+ * Return: Void
+ */
+void check_chain(info_t *info, char *buf, size_t *p, size_t i, size_t len)
+{
+	size_t j = *p;
+
+	if (info->cmd_buf_type == CMD_AND)
+	{
+		if (info->status)
 		{
-			free(env->value);
-			env->value = strdup(value);
+			buf[i] = 0;
+			j = len;
+		}
+	}
+	if (info->cmd_buf_type == CMD_OR)
+	{
+		if (!info->status)
+		{
+			buf[i] = 0;
+			j = len;
+		}
+	}
+
+	*p = j;
+}
+
+/**
+ * replace_alias - replaces an aliases in the tokenized string
+ * @info: the parameter struct
+ *
+ * Return: 1 if replaced, 0 otherwise
+ */
+int replace_alias(info_t *info)
+{
+	int i;
+	list_t *node;
+	char *p;
+
+	for (i = 0; i < 10; i++)
+	{
+		node = node_starts_with(info->alias, info->argv[0], '=');
+		if (!node)
 			return (0);
-		}
-		env = env->next;
+		free(info->argv[0]);
+		p = _strchr(node->str, '=');
+		if (!p)
+			return (0);
+		p = _strdup(p + 1);
+		if (!p)
+			return (0);
+		info->argv[0] = p;
 	}
-	env = malloc(sizeof(EnvVar));
-	env->name = strdup(name);
-	env->value = strdup(value);
-	env->next = env_vars;
-	env_vars = env;
-	return (0);
+	return (1);
 }
-/**
- * j_handle_variables- function of valiables
- * @input: string name
- */
-void j_handle_variables(char *input)
-{
-	char *token;
-	char *delim = " ";
-	token = strtok(input, delim);
 
-	while (token != NULL)
+/**
+ * replace_vars - replaces vars in the tokenized string
+ * @info: the parameter struct
+ *
+ * Return: 1 if replaced, 0 otherwise
+ */
+int replace_vars(info_t *info)
+{
+	int i = 0;
+	list_t *node;
+
+	for (i = 0; info->argv[i]; i++)
 	{
-		if (token[0] == '$' && token[1] != '\0')
+		if (info->argv[i][0] != '$' || !info->argv[i][1])
+			continue;
+
+		if (!_strcmp(info->argv[i], "$?"))
 		{
-            /* It's an environment variable*/
-			char *name = token + 1;
-			char *value = j_get_env(name);
-            
-			if (value != NULL)
-			{
-				/* Replace the variable with its value*/
-				write(STDOUT_FILENO, value, strlen(value));
-				write(STDOUT_FILENO, " ", 1);  /* Add a space after the value*/
-			}
+			replace_string(&(info->argv[i]),
+					_strdup(convert_number(info->status, 10, 0)));
+			continue;
 		}
-		else
+		if (!_strcmp(info->argv[i], "$$"))
 		{
-			/* Not an environment variable, execute the command*/
-			j_execute_command(token);
+			replace_string(&(info->argv[i]),
+					_strdup(convert_number(getpid(), 10, 0)));
+			continue;
 		}
-		token = strtok(NULL, delim);
+		node = node_starts_with(info->env, &info->argv[i][1], '=');
+		if (node)
+		{
+			replace_string(&(info->argv[i]),
+					_strdup(_strchr(node->str, '=') + 1));
+			continue;
+		}
+		replace_string(&info->argv[i], _strdup(""));
+
 	}
-	j_print("\n");
+	return (0);
 }
 
 /**
- * main- main function
- * @input: string name
- * j_set_env: environment function
- * Return: always 0
+ * replace_string - replaces string
+ * @old: address of old string
+ * @new: new string
+ *
+ * Return: 1 if replaced, 0 otherwise
  */
-int main(void)
+int replace_string(char **old, char *new)
 {
-	char input[] = "ls $HOME -la";
-
-	j_print("Original Input: ");
-	j_print(input);
-	j_print("\n");
-
-	/* Simulate setting an environment variable*/
-	j_set_env("HOME", "/home/user");
-	j_handle_variables(input);
-
-	return (0);
+	free(*old);
+	*old = new;
+	return (1);
 }

@@ -1,59 +1,62 @@
 #include "shell.h"
 
 /**
- * j_print- Custom print function
- * @str: The string to print
+ * _memset - fills memory with a constant byte
+ * @s: the pointer to the memory area
+ * @b: the byte to fill *s with
+ * @n: the amount of bytes to be filled
+ * Return: (s) a pointer to the memory area s
  */
-void j_print(const char *str)
+char *_memset(char *s, char b, unsigned int n)
 {
-	write(STDOUT_FILENO, str, strlen(str));
+	unsigned int i;
+
+	for (i = 0; i < n; i++)
+		s[i] = b;
+	return (s);
 }
+
 /**
- * j_execute_command- executing function
+ * ffree - frees a string of strings
+ * @pp: string of strings
+ */
+void ffree(char **pp)
+{
+	char **a = pp;
+
+	if (!pp)
+		return;
+	while (*pp)
+		free(*pp++);
+	free(a);
+}
+
+/**
+ * _realloc - reallocates a block of memory
+ * @ptr: pointer to previous malloc'ated block
+ * @old_size: byte size of previous block
+ * @new_size: byte size of new block
  *
+ * Return: pointer to da ol'block nameen.
  */
-void j_execute_command(char *command)
+void *_realloc(void *ptr, unsigned int old_size, unsigned int new_size)
 {
-    /**
-     * Implement code to execute a single command
-     *This function could use exec functions, fork, etc.
-     */
-	j_print("Executing command: ");
-	j_print(command);
-	j_print("\n");
-}
-/**
- * j_handle_semicolon- other function
- *
- * @input: string name
- */
-void j_handle_semicolon(char *input)
-{
-	char *token;
-	char *delim = ";";
+	char *p;
 
-	token = strtok(input, delim);
+	if (!ptr)
+		return (malloc(new_size));
+	if (!new_size)
+		return (free(ptr), NULL);
+	if (new_size == old_size)
+		return (ptr);
 
-	while (token != NULL)
-	{
-		j_execute_command(token);
-		token = strtok(NULL, delim);
-	}
-}
-/**
- * main- main function
- * @input: string name
- * Return: always 0
- */
-int main(void)
-{
-	char input[] = "ls /var ; echo Hello ; date";
+	p = malloc(new_size);
+	if (!p)
+		return (NULL);
 
-	j_print("Original Input: ");
-	j_print(input);
-	j_print("\n");
-
-	j_handle_semicolon(input);
-
-	return (0);
+	old_size = old_size < new_size ? old_size : new_size;
+	while (old_size--)
+		p[old_size] = ((char *)ptr)[old_size];
+	free(ptr);
+	return (p);
 }
