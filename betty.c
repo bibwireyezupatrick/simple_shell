@@ -1,5 +1,4 @@
-#include <stdio.h>
-
+#include <stdio.h>i
 /**
  * main - Entry point
  *
@@ -7,7 +6,9 @@
  */
 int main(void)
 {
-	printf("Hello, World!\n");
+	printf("I am checking for Betty style /n");
+	printf("Bravo! You passed my test. /n");
+
 	return (0);
 }
 

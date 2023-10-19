@@ -1,4 +1,4 @@
-#include "sheel.h"
+#include "shell.h"
 
 /**
  * j_print - Custom print function
@@ -8,21 +8,23 @@ void j_print(const char *str)
 {
 	write(STDOUT_FILENO, str, strlen(str));
 }
+
 /**
- * main - main function
- * @input: The string to print
+ * main - Main function
+ *
+ * Return: Always returns 0
  */
 int main(void)
 {
 	char input[] = "echo $$ # ls -la";
+	char *pos;
 
 	j_print("Original Input: ");
 	j_print(input);
 	j_print("\n");
 
-	char *pos; /* Declare pos at the beginning of the block*/
-
 	pos = strstr(input, "#");
+
 	if (pos != NULL)
 	{
 		*pos = '\0';
@@ -31,5 +33,7 @@ int main(void)
 	j_print("Processed Input: ");
 	j_print(input);
 	j_print("\n");
-	return 0;
+
+	return (0);
 }
+
