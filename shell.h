@@ -31,8 +31,8 @@
 #define USE_GETLINE 0
 #define USE_STRTOK 0
 
-#define HIST_FILE
-#define HIST_MAN
+#define HIST_FILE	".simple_shell_history"
+#define HIST_MAX	4096
 
 extern char **environ;
 
@@ -50,6 +50,28 @@ typedef struct liststr
 	struct liststr *next;
 } list_t;
 
+/**
+ * struct passinfo - contains pseudo-arguements to pass into a function,
+ * allowing uniform prototype for function pointer struct
+ * @arg: a string generated from getline containing arguements
+ * @argv:an array of strings generated from arg
+ * @path: a string path for the current command
+ * @argc: the argument count
+ * @line_count: the error count
+ * @err_num: the error code for exit()s
+ * @linecount_flag: if on count this line of input
+ * @fname: the program filename
+ * @env: linked list local copy of environ
+ * @environ: custom modified copy of environ from LL env
+ * @history: the history node
+ * @alias: the alias node
+ * @env_changed: on if environ was changed
+ * @status: the return status of the last exec'd command
+ * @cmd_buf: address of pointer to cmd_buf, on if chaining
+ * @cmd_buf_type: CMD_type ||, &&, ;
+ * @readfd: the fd from which to read line input
+ * @histcount: the history line number count
+ */
 typedef struct passinfo
 {
 	char *arg;
@@ -156,9 +178,9 @@ int _myexit(info_t *);
 int _mycd(info_t *);
 int _myhelp(info_t *);
 
-/* toem_builtin2.c */
-int my_history(info_t *);
-int my_alias(info_t *);
+/* toem_builtin1.c */
+int _myhistory(info_t *);
+int _myalias(info_t *);
 
 /*toem_getline.c */
 ssize_t get_input(info_t *);

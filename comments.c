@@ -1,35 +1,73 @@
-#include "sheel.h"
+#include "shell.h"
 
 /**
- * j_print - Custom print function
- * @str: The string to print
+ * clear_info - initializes info_t struct
+ * @info: struct address
  */
-void j_print(const char *str)
+void clear_info(info_t *info)
 {
-	write(STDOUT_FILENO, str, strlen(str));
+	info->arg = NULL;
+	info->argv = NULL;
+	info->path = NULL;
+	info->argc = 0;
 }
+
 /**
- * main - main function
- * @input: The string to print
+ * set_info - initializes info_t struct
+ * @info: struct address
+ * @av: argument vector
  */
-int main(void)
+void set_info(info_t *info, char **av)
 {
-	char input[] = "echo $$ # ls -la";
+	int i = 0;
 
-	j_print("Original Input: ");
-	j_print(input);
-	j_print("\n");
-
-	char *pos; /* Declare pos at the beginning of the block*/
-
-	pos = strstr(input, "#");
-	if (pos != NULL)
+	info->fname = av[0];
+	if (info->arg)
 	{
-		*pos = '\0';
-	}
+		info->argv = strtow(info->arg, " \t");
+		if (!info->argv)
+		{
+			info->argv = malloc(sizeof(char *) * 2);
+			if (info->argv)
+			{
+				info->argv[0] = _strdup(info->arg);
+				info->argv[1] = NULL;
+			}
+		}
+		for (i = 0; info->argv && info->argv[i]; i++)
+			;
+		info->argc = i;
 
-	j_print("Processed Input: ");
-	j_print(input);
-	j_print("\n");
-	return 0;
+		replace_alias(info);
+		replace_vars(info);
+	}
+}
+
+/**
+ * free_info - frees info_t struct fields
+ * @info: struct address
+ * @all: true if freeing all fields
+ */
+void free_info(info_t *info, int all)
+{
+	ffree(info->argv);
+	info->argv = NULL;
+	info->path = NULL;
+	if (all)
+	{
+		if (!info->cmd_buf)
+			free(info->arg);
+		if (info->env)
+			free_list(&(info->env));
+		if (info->history)
+			free_list(&(info->history));
+		if (info->alias)
+			free_list(&(info->alias));
+		ffree(info->environ);
+			info->environ = NULL;
+		bfree((void **)info->cmd_buf);
+		if (info->readfd > 2)
+			close(info->readfd);
+		_putchar(BUF_FLUSH);
+	}
 }

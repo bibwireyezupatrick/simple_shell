@@ -1,110 +1,86 @@
 #include "shell.h"
 
 /**
- * j_print - Custom print function
- * @str: The string to print
- */
-void j_print(const char *str)
-{
-	write(STDOUT_FILENO, str, strlen(str));
-}
-
-/* Structure to store aliases*/
-typedef struct Alias
-{
-	char *name;
-	char *value;
-	struct Alias *next;
-} Alias;
-
-Alias *aliases = NULL;
-
-void j_execute_command(char *command)
-{
-	/* Implement code to execute a single command*/
-	/* This function could use exec functions, fork, etc.*/
-	j_print("Executing command: ");
-	j_print(command);
-	j_print("\n");
-}
-
-void j_handle_alias(char *input)
-{
-	if (strncmp(input, "alias", 5) == 0)
-	{
-		/* Handling alias command*/
-		if (strlen(input) > 6)
-		{
-			char *alias_def = input + 6; /* Skip "alias " part*/
-			char *name = strtok(alias_def, "=");
-			char *value = strtok(NULL, "=");
-
-			/*Store or update the alias*/
-			Alias *alias = aliases;
-			while (alias != NULL)
-			{
-				if (strcmp(alias->name, name) == 0)
-				{
-					free(alias->value);
-					alias->value = strdup(value);
-					return;
-				}
-				alias = alias->next;
-			}
-			alias = malloc(sizeof(Alias));
-			alias->name = strdup(name);
-			alias->value = strdup(value);
-			alias->next = aliases;
-			aliases = alias;
-		}
-		else
-		{
-			/* Print all aliases*/
-			Alias *alias = aliases;
-			while (alias != NULL)
-			{
-				j_print("alias ");
-				j_print(alias->name);
-				j_print("='");
-				j_print(alias->value);
-				j_print("'\n");
-				alias = alias->next;
-			}
-		}
-		}
-		else 
-		{
-		/*Check if the command is an alias*/
-		Alias *alias = aliases;
-
-		while (alias != NULL)
-		{
-		if (strcmp(input, alias->name) == 0)
-		{
-		input = alias->value;
-		break;
-		}
-		alias = alias->next;
-		}
-		j_execute_command(input);
-		}
-}
-/**
- * main- main function
- * input: string name
+ * is_cmd - determines if a file is an executable command
+ * @info: the info struct
+ * @path: path to the file
  *
- * Return: always 0
+ * Return: 1 if true, 0 otherwise
  */
-int main(void)
+int is_cmd(info_t *info, char *path)
 {
-	char input[] = "ls /var";
+	struct stat st;
 
-	j_print("Original Input: ");
-       	j_print(input);
-	j_print("\n");
+	(void)info;
+	if (!path || stat(path, &st))
+		return (0);
 
-	j_handle_alias(input);
-
+	if (st.st_mode & S_IFREG)
+	{
+		return (1);
+	}
 	return (0);
 }
 
+/**
+ * dup_chars - duplicates characters
+ * @pathstr: the PATH string
+ * @start: starting index
+ * @stop: stopping index
+ *
+ * Return: pointer to new buffer
+ */
+char *dup_chars(char *pathstr, int start, int stop)
+{
+	static char buf[1024];
+	int i = 0, k = 0;
+
+	for (k = 0, i = start; i < stop; i++)
+		if (pathstr[i] != ':')
+			buf[k++] = pathstr[i];
+	buf[k] = 0;
+	return (buf);
+}
+
+/**
+ * find_path - finds this cmd in the PATH string
+ * @info: the info struct
+ * @pathstr: the PATH string
+ * @cmd: the cmd to find
+ *
+ * Return: full path of cmd if found or NULL
+ */
+char *find_path(info_t *info, char *pathstr, char *cmd)
+{
+	int i = 0, curr_pos = 0;
+	char *path;
+
+	if (!pathstr)
+		return (NULL);
+	if ((_strlen(cmd) > 2) && starts_with(cmd, "./"))
+	{
+		if (is_cmd(info, cmd))
+			return (cmd);
+	}
+	while (1)
+	{
+		if (!pathstr[i] || pathstr[i] == ':')
+		{
+			path = dup_chars(pathstr, curr_pos, i);
+			if (!*path)
+				_strcat(path, cmd);
+			else
+			{
+				_strcat(path, "/");
+				_strcat(path, cmd);
+			}
+			if (is_cmd(info, path))
+				return (path);
+			if (!pathstr[i])
+				break;
+			curr_pos = i;
+		}
+		i++;
+	}
+	return (NULL);
+}
